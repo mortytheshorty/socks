@@ -8,20 +8,31 @@
 
 #include "include/socks_internal.h"
 
+#define TIME_BUF_LEN (11 /* year */ + 5*2 /* mdHMS */ + 6 /* separators */ )
+
 int socks_log(socks *socks, const char *function, const char *fmt, ...)
 {
     
     if(socks->log) {
         va_list args;
         va_start(args, fmt);
+        char buffer[TIME_BUF_LEN * 2 + 1];
+
         time_t now = time(NULL); // get current time
-        char buffer[128];
-        struct tm tnow;
-
-        gmtime_r(&now, &tnow); // create UTC time
-
-        strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S-%Z", &tnow); // create UTC time format string
-
+        if (now == -1) {
+            strcpy(buffer, "Unknown time");
+        }
+        else {
+            struct tm *tm_now = gmtime(&now);
+            if (tm_now == NULL) {
+                strcpy(buffer, "Unknown time");
+            }
+            else {
+                if (strftime(buffer, sizeof buffer, "%Y-%m-%dT%H:%M:%SZ", tm_now) == 0) {
+                    strcpy(buffer, "Unknown time");
+                }
+            }
+        }
         fprintf(socks->log, "%s: ", buffer); // log timestamp
         vfprintf(socks->log, fmt, args); // log message
 
