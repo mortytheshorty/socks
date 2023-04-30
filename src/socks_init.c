@@ -28,13 +28,13 @@ int socks_init(socks *socks_handle, socks_config *config)
 
     }
 
-    socks_log(socks_handle, __FUNCTION__, "Socks%d-%s started.", config->version, (config->type == SOCKS_SERVER) ? "Server" : "Client");
+    socks_log(socks_handle, "Socks%d-%s started.", config->version, (config->type == SOCKS_SERVER) ? "Server" : "Client");
 
     // initialize socks main socket
     socks_handle->sock = socket(AF_INET, SOCK_STREAM, 0);
     if(socks_handle->sock < 0)
     {
-        socks_log(socks_handle, __FUNCTION__, "failed to create socket");
+        socks_log(socks_handle, "failed to create socket");
         return SOCKS_SOCKCREAT_ERR; // SOCKS_SOCKET_CREATION_ERROR
     }
 
@@ -47,7 +47,7 @@ int socks_init(socks *socks_handle, socks_config *config)
     inaddr.sin_addr.s_addr = inet_addr(config->ip);
     if(inaddr.sin_addr.s_addr == INADDR_NONE)
     {
-        socks_log(socks_handle, __FUNCTION__, "failed to parse ip address %s", config->ip);
+        socks_log(socks_handle, "failed to parse ip address %s", config->ip);
         return SOCKS_IP_INVAL; // SOCKS_WRONG_IP_ADDRESS
     }
 
@@ -56,13 +56,13 @@ int socks_init(socks *socks_handle, socks_config *config)
     {
         rc = setsockopt(socks_handle->sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
         if(rc < 0) {
-            socks_log(socks_handle, __FUNCTION__, "failed to enable reuse of socket address");
+            socks_log(socks_handle, "failed to enable reuse of socket address");
             return SOCKS_SOCKREUSE_ERR;
         }
 
         if( bind(socks_handle->sock, (struct sockaddr*) &inaddr, sizeof(inaddr)) != 0 )
         {
-            socks_log(socks_handle, __FUNCTION__, "failed to bind %s to socket.", config->ip);
+            socks_log(socks_handle, "failed to bind %s to socket.", config->ip);
             return SOCKS_SERVER_BIND_ERR; // SOCKS_BIND_ERROR
         }
 
@@ -73,10 +73,10 @@ int socks_init(socks *socks_handle, socks_config *config)
     {
         if(connect(socks_handle->sock, (struct sockaddr*)&inaddr, sizeof(inaddr)) != 0)
         {
-            socks_log(socks_handle, __FUNCTION__, "failed to connect to socks server %s", config->ip);
+            socks_log(socks_handle, "failed to connect to socks server %s", config->ip);
             return SOCKS_CLIENT_CONNECT_ERR; // SOCKS_CLIENT_CONNECT_ERROR
         }
-        socks_log(socks_handle, __FUNCTION__, "connected to socker server %s:%d", config->ip, config->port);
+        socks_log(socks_handle, "connected to socker server %s:%d", config->ip, config->port);
     }
 
     return 0;
