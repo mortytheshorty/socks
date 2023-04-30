@@ -16,10 +16,13 @@
 
 #define ARRAYSIZE(x) (sizeof((x)) / sizeof((x)[0]))
 
+#define socks_log(socks, fmtstr, ...) socks_log(socks, __FUNCTION__, fmtstr, ##__VA_ARGS__)
+
+
 ssize_t readFromSocket(int sock, void *buf, size_t size);
 ssize_t sendToSocket(int sock, void *buf, size_t size);
 
 void *socks_connection_thread(void *pipefdsp);
 int socks_accept(socks *proxy, socks_connection *conn);
-int socks_log(socks *socks, const char *function, const char *fmt, ...);
+//int socks_log(socks *socks, const char *function, const char *fmt, ...);
 #endif

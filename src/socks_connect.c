@@ -3,14 +3,14 @@
 int socks_connect(socks *client, char *ip, int port) {
     
     client->ip = ip;
-    client->port = port;
+    client->port = (uint16_t) port;
 
     ssize_t ret = 0;
     socks4_request request = { 0 };
 
     request.version = SOCKS4_VERSION;
     request.cmd = SOCKS4_CMD_CONNECT;
-    request.port = htons((short) port);
+    request.port = htons((uint16_t) port);
     request.ip = inet_addr(ip);
     request.userid[0] = 0x00;
 

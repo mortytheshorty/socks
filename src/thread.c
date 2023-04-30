@@ -43,8 +43,13 @@ void *socks_connection_thread(void *pipefd) {
 
     /* set sockets to non blocking */
     int opt = 1;
-    fcntl(conn.client_sock, FIONBIO, &opt);
-    fcntl(conn.target_sock, FIONBIO, &opt);
+    if(fcntl(conn.client_sock, FIONBIO, &opt) != 0) {
+        perror("socks_connection_thread: fcntl(conn.client_sock, ...)");
+    }
+
+    if(fcntl(conn.target_sock, FIONBIO, &opt) != 0) {
+        perror("socks_connection_thread: fcntl(conn.target_sock, ...)");
+    }
     
     while(true) {
         
@@ -57,7 +62,7 @@ void *socks_connection_thread(void *pipefd) {
 
 
         /* waiting for some events */
-        rc = poll(pfds, MAX_SOCKETS, timeout);
+        rc = poll(pfds, nfds, timeout);
         if(rc < 0) {
             fprintf(stderr, "poll() failed: %s\n", strerror(errno));
             break;
@@ -77,7 +82,7 @@ void *socks_connection_thread(void *pipefd) {
             if(num_bytes < 0) break; // client connection lost
             if(num_bytes > 0) {
                 printf("read from client: %s (%ld)\n", client_buf, num_bytes);
-                client_buf_size += num_bytes;
+                client_buf_size += (size_t) num_bytes;
                 pfds[REMOTE_POLL].revents = POLLOUT;
             }
         }
@@ -88,8 +93,8 @@ void *socks_connection_thread(void *pipefd) {
             num_bytes = readFromSocket(conn.target_sock, target_buf, sizeof(target_buf));
             if (num_bytes < 0) break; // remote connection lost
             if (num_bytes > 0) {
-                printf("read from peer: %s (%ld)\n", target_buf, num_bytes);
-                target_buf_size += num_bytes;
+                printf("read from peer: %s (%ld)\n", target_buf, (size_t)  num_bytes);
+                target_buf_size += (size_t) num_bytes;
                 pfds[CLIENT_POLL].revents = POLLOUT;
             }
         }
@@ -101,17 +106,17 @@ void *socks_connection_thread(void *pipefd) {
             if (num_bytes > 0) {
                 printf("forward to client: %s (%ld)\n", target_buf, num_bytes);
                 // remove the sent bytes...
-                target_buf_size -= num_bytes;
+                target_buf_size -= (size_t) num_bytes;
                 memmove(client_buf, &client_buf[num_bytes], client_buf_size);
 
             } 
         } else if(pfds[REMOTE_POLL].revents & POLLOUT) {
-            num_bytes = sendToSocket(conn.target_sock, client_buf, num_bytes);
+            num_bytes = sendToSocket(conn.target_sock, client_buf, (size_t) num_bytes);
             if(num_bytes < 0) break;
             if(num_bytes > 0) {
                 printf("forward to remote peer: %s (%ld)\n", client_buf, num_bytes);
                 // remove the sent bytes...
-                client_buf_size -= num_bytes;
+                client_buf_size -= (size_t) num_bytes;
                 memmove(target_buf, &target_buf[num_bytes], target_buf_size);
             }
 
@@ -132,5 +137,5 @@ void *socks_connection_thread(void *pipefd) {
         perror("socks_connection_thread: close(conn.target_sock):");
     }
     printf("Thread terminating\n");
-
+    return NULL;
 }

@@ -5,7 +5,7 @@ project(socks C)
 set(CMAKE_C_STANDARD 11)
 
 add_library(socks_objects OBJECT "src/socks_init.c" "src/socks_close.c" "src/socks_log.c" "src/socks_connect.c" "src/socket_config.c" "src/thread.c" "src/socks_accept.c" "src/socks_accept.c" "src/socks_listen.c" "src/sendToSocket.c" "src/readFromSocket.c")
-target_compile_options(socks_objects PRIVATE "-fpic" "-g")
+target_compile_options(socks_objects PRIVATE "-fpic" "-g" "-pedantic" "-Wall" "-Wextra" "-Wconversion")
 
 add_library(libsocks-shared SHARED $<TARGET_OBJECTS:socks_objects>)
 target_link_libraries(libsocks-shared "pthread")

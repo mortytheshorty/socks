@@ -7,7 +7,7 @@
 
 #include <inttypes.h>
 
-#ifdef __GNUC__ || __clang__
+#if defined(__GNUC__) || defined(__clang__)
  #define PACKED __attribute__((__packed__))
 #else
  #define PACKED

@@ -6,7 +6,9 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#include "include/socks_internal.h"
+#include "include/socks4.h"
+#include "include/socket_config.h"
+#include "../include/socks.h"
 
 #define TIME_BUF_LEN (11 /* year */ + 5*2 /* mdHMS */ + 6 /* separators */ )
 

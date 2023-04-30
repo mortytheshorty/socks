@@ -15,7 +15,7 @@ int target_connect(socks *proxy, socks4_request *req, int client_sock, int *targ
     inaddr.sin_port = req->port;
 
     *target_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(target_sock < 0) {
+    if(*target_sock < 0) {
         socks_log(proxy, __FUNCTION__, "failed to create remote peer socket.");
         return SOCKS_SOCKCREAT_ERR; // SOCKS_SERVER_TARGET_SOCKET_CREATE_ERROR
     }

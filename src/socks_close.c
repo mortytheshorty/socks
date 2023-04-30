@@ -6,7 +6,7 @@ void socks_destroy(socks *socks_handle)
         perror("socks_destroy: close(socks_handle->sock)");
     }
 
-    socks_log(socks_handle, __FUNCTION__, "closing connection");
+    socks_log(socks_handle, "closing connection");
     if(socks_handle->log) {
         fclose(socks_handle->log);
     }
