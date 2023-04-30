@@ -38,7 +38,6 @@ int socks_init(socks *socks_handle, socks_config *config)
         return SOCKS_SOCKCREAT_ERR; // SOCKS_SOCKET_CREATION_ERROR
     }
 
-
     /* this is SOCKS VERSION dependent */
     struct sockaddr_in inaddr;
     memset(&inaddr, 0, sizeof(inaddr));

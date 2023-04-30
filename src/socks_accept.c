@@ -6,9 +6,9 @@ int target_connect(socks *proxy, socks4_request *req, int client_sock, int *targ
 {
     char ip[INET6_ADDRSTRLEN];
     uint16_t port;
-    socks4_reply reply;
-    struct sockaddr_in inaddr;
-    memset(&inaddr, 0, sizeof(inaddr));
+    socks4_reply reply = { 0 };
+    struct sockaddr_in inaddr = { 0 };
+    
 
     inaddr.sin_family = AF_INET;
     inaddr.sin_addr.s_addr = req->ip;
@@ -48,10 +48,10 @@ int socks_accept(socks *proxy, socks_connection *conn)
         socks_log(proxy, __FUNCTION__, "can not listen to socks handle. socks handle is a client");
     }
     
-    socks4_request request;
-    socks4_reply reply;
+    socks4_request request = { 0 };
+    socks4_reply reply = { 0 };
 
-    char ip[INET6_ADDRSTRLEN];
+    char ip[INET6_ADDRSTRLEN] = { 0 };
     uint16_t port;
     int target_sock = -1;
     int client_sock = -1;

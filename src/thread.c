@@ -29,7 +29,7 @@ void *socks_connection_thread(void *pipefd) {
 
     int timeout = DEFAULT_TIMEOUT;
     /* two pollfd's for listening on remote peer and client connection for events */
-    struct pollfd pfds[MAX_SOCKETS];
+    struct pollfd pfds[MAX_SOCKETS] = { 0 };
     nfds_t nfds = MAX_SOCKETS;
 
     uint8_t client_buf[4096];
@@ -40,13 +40,11 @@ void *socks_connection_thread(void *pipefd) {
     
     ssize_t num_bytes;
 
-    memset(&pfds, 0, sizeof(pfds));
 
     /* set sockets to non blocking */
     int opt = 1;
-    ioctl(conn.client_sock, FIONBIO, &opt);
-    ioctl(conn.target_sock, FIONBIO, &opt);
-
+    fcntl(conn.client_sock, FIONBIO, &opt);
+    fcntl(conn.target_sock, FIONBIO, &opt);
     
     while(true) {
         
@@ -127,8 +125,12 @@ void *socks_connection_thread(void *pipefd) {
     }
 
     // all done
-    close(conn.client_sock);
-    close(conn.target_sock);
+    if(close(conn.client_sock) != 0) {
+        perror("socks_connection_thread: close(conn.client_sock):");
+    } 
+    if(close(conn.target_sock) != 0) {
+        perror("socks_connection_thread: close(conn.target_sock):");
+    }
     printf("Thread terminating\n");
 
 }

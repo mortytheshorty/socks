@@ -3,7 +3,13 @@
 
 #include <inttypes.h>
 
+
 /* not sure if I want to use it */
+#define TCPKEEPALIVE 1
+#define TCPKEEPALIVE_KEEPCNT 10
+#define TCPKEEPALIVE_KEEPIDLE 1
+#define TCPKEEPALIVE_KEEPINTVL 1
+
 void socket_enable_keepalive(int sock);
 
 /* gets ipv4 address and port form socket file descriptor */

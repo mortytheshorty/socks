@@ -6,7 +6,7 @@ int socks_connect(socks *client, char *ip, int port) {
     client->port = port;
 
     ssize_t ret = 0;
-    socks4_request request;
+    socks4_request request = { 0 };
 
     request.version = SOCKS4_VERSION;
     request.cmd = SOCKS4_CMD_CONNECT;
@@ -19,7 +19,7 @@ int socks_connect(socks *client, char *ip, int port) {
         return SOCKS_SEND_ERR;
     }
     
-    socks4_reply reply;
+    socks4_reply reply = { 0 };
 
     if((ret = readFromSocket(client->sock, &reply, sizeof(reply))) != sizeof(reply)) {
         socks_log(client, __FUNCTION__, "failed to receive reply from socks server '%s:%d'", client->config->ip, client->config->port);

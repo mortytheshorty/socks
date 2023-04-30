@@ -7,7 +7,12 @@
 
 #include <inttypes.h>
 
-#define PACKED __attribute__((__packed__))
+#ifdef __GNUC__ || __clang__
+ #define PACKED __attribute__((__packed__))
+#else
+ #define PACKED
+#endif
+
 
 #define SOCKS4_VERSION 0x04
 #define SOCKS4_CMD_CONNECT 0x01

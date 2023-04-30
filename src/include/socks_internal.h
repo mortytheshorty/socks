@@ -14,6 +14,7 @@
 #include "socket_config.h"
 #include "socks4.h"
 
+#define ARRAYSIZE(x) (sizeof((x)) / sizeof((x)[0]))
 
 ssize_t readFromSocket(int sock, void *buf, size_t size);
 ssize_t sendToSocket(int sock, void *buf, size_t size);

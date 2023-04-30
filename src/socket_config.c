@@ -7,9 +7,12 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#define check(expr) if (!(expr)) { perror(#expr); kill(0, SIGTERM); }
+#include "include/socks_internal.h"
 
-void socket_enable_keepalive(int sock) {
+#define check(expr) if (!(expr)) { perror(#expr); return -1; }
+
+int socket_enable_keepalive(int sock) {
+#if 0
     int yes = 1;
     check(setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) != -1);
 
@@ -21,6 +24,26 @@ void socket_enable_keepalive(int sock) {
 
     int maxpkt = 10;
     check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int)) != -1);
+#endif
+    // thanks to user Haris from stackoverflow for this solution to reducde duplication
+    struct option {
+        int level;
+        int opt_name;
+        const void *opt_val;
+    }
+
+    const options[] = {
+        {SOL_SOCKET, SO_KEEPALIVE, (int[]) {TCPKEEPALIVE}},
+        {IPPROTO_TCP, TCP_KEEPCNT, (int[]) {TCPKEEPALIVE_KEEPCNT}},
+        {IPPROTO_TCP, TCP_KEEPIDLE, (int[]) {TCPKEEPALIVE_KEEPIDLE}},
+        {IPPROTO_TCP, TCP_KEEPINTVL, (int[]) {TCPKEEPALIVE_KEEPINTVL}},
+    };
+
+    for(size_t i = 0; i < ARRAYSIZE(options); i++) {
+        check(setsockopt(sock, options[i].level, options[i].opt_name, options[i].opt_val, sizeof(options->opt_val)) != -1);
+    }
+
+    return 0;
 }
 
 
@@ -38,10 +61,12 @@ int socket_peer_addrinfo(int sock, char *buffer, size_t bufsz, uint16_t *port)
         return -1;
     }
 
-    struct sockaddr_storage inaddr;
+    struct sockaddr_storage inaddr = { 0 };
     socklen_t inaddr_len = sizeof(inaddr);
     
-    getpeername(sock, (struct sockaddr*) &inaddr, &inaddr_len);
+    if(getpeername(sock, (struct sockaddr*) &inaddr, &inaddr_len) != 0) {
+        perror("socket_peer_addrinfo: getpeername()");
+    }
 
     if(inet_ntop(inaddr.ss_family, get_in_addr(&inaddr), buffer, inaddr_len) == NULL) {
         return -1;
@@ -60,7 +85,7 @@ int socket_local_addrinfo(int sock, char *buffer, size_t bufsz, uint16_t *port)
         return -1;
     }
 
-    struct sockaddr_storage inaddr;
+    struct sockaddr_storage inaddr = { 0 };
     socklen_t inaddr_len = sizeof(inaddr);
     
     getsockname(sock, (struct sockaddr*) &inaddr, &inaddr_len);
@@ -69,7 +94,6 @@ int socket_local_addrinfo(int sock, char *buffer, size_t bufsz, uint16_t *port)
         return -1;
     }
     
-
     if(port) {
         *port = ntohs(((struct sockaddr_in*)&inaddr)->sin_port);
     }
