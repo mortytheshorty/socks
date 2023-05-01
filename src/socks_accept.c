@@ -63,13 +63,14 @@ int socks_accept(socks *proxy, socks_connection *conn)
         return SOCKS_SERVER_ACCEPT_ERR; // SOCKS_SERVER_ACCEPT_ERROR see: errno
     }
 
-
     socket_peer_addrinfo(client_sock, ip, sizeof(ip), &port);
     socks_log(proxy, "connection from %s:%d", ip, port);
 
     if(readFromSocket(client_sock, &request, sizeof(request)) != sizeof(request)) {
         socks_log(proxy, "failed to receive request from '%s:%d'", ip, port);
-        close(client_sock);
+        if(close(client_sock) != 0) {
+            perror("socks_accept: close(client_sock)");
+        }
         return SOCKS_RECV_ERR; // SOCKS_SERVER_RECV_ERROR 
     }
     
@@ -77,13 +78,11 @@ int socks_accept(socks *proxy, socks_connection *conn)
         // identifaction protocol code
     }
 
-
     rc = target_connect(proxy, &request, client_sock, &target_sock);
-    if( rc ) {
+    if( rc != SOCKS_OK ) {
         return SOCKS_SERVER_CONNECT_ERR;
     }
-
-
+    
     // build the reply
     reply.version = SOCKS4_VERSION;
     reply.code = SOCKS4_REPLY_GRANTED;
@@ -93,11 +92,12 @@ int socks_accept(socks *proxy, socks_connection *conn)
     // send it back to the client
     if(sendToSocket(client_sock, &reply, sizeof(reply)) != sizeof(reply)) {
         socks_log(proxy, "failed to send reply about successful connect to '%s:%d'", "unknown", 0);
-        close(client_sock);
+        if(close(client_sock) != 0) {
+            perror("socks_accept: close(client_sock)");
+        }
         return SOCKS_SEND_ERR; // SOCKS_SERVER_SEND_ERROR
     }
 
-    
     conn->client_sock = client_sock;
     conn->target_sock = target_sock;
 

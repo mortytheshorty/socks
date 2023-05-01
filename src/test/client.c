@@ -42,8 +42,8 @@ int main(void)
     char msg[] = "Echo Test Message";
     char buffer[sizeof(msg)];
 
-    socks_send(&client, msg, sizeof(msg));
-    socks_recv(&client, buffer, sizeof(buffer));
+    printf("socks_send: %d\n", socks_send(&client, msg, sizeof(msg)));
+    printf("socks_recv: %d\n", socks_recv(&client, buffer, sizeof(buffer)));
 
     printf("Send....: %s\n", msg);
     printf("Received: %s\n", buffer);

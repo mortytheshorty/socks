@@ -32,25 +32,28 @@ void *socks_connection_thread(void *pipefd) {
     struct pollfd pfds[MAX_SOCKETS] = { 0 };
     nfds_t nfds = MAX_SOCKETS;
 
-    uint8_t client_buf[4096];
+    uint8_t client_buf[4096] = { 0 };
     size_t client_buf_size = 0;
 
-    uint8_t target_buf[4096];
+    uint8_t target_buf[4096] = { 0 };
     size_t target_buf_size = 0;
     
-    ssize_t num_bytes;
+    ssize_t num_bytes = 0;
 
 
     /* set sockets to non blocking */
-    int opt = 1;
-    if(fcntl(conn.client_sock, FIONBIO, &opt) != 0) {
+    int flags = fcntl(conn.client_sock, F_GETFL, 0);
+    if(fcntl(conn.client_sock, F_SETFL, flags | O_NONBLOCK) != 0) {
         perror("socks_connection_thread: fcntl(conn.client_sock, ...)");
     }
 
-    if(fcntl(conn.target_sock, FIONBIO, &opt) != 0) {
+    flags = fcntl(conn.target_sock, F_GETFL, 0);
+    if(fcntl(conn.target_sock, F_SETFL, flags | O_NONBLOCK) != 0) {
         perror("socks_connection_thread: fcntl(conn.target_sock, ...)");
     }
-    
+
+
+
     while(true) {
         
 
@@ -59,7 +62,6 @@ void *socks_connection_thread(void *pipefd) {
 
         pfds[REMOTE_POLL].fd = conn.target_sock;
         pfds[REMOTE_POLL].events = POLLIN;
-
 
         /* waiting for some events */
         rc = poll(pfds, nfds, timeout);
@@ -72,12 +74,12 @@ void *socks_connection_thread(void *pipefd) {
             fprintf(stderr, "poll() timed out. End Connection\n");
             break;
         }
-
+        
 
         /* there is something to read form the client side */
         if(pfds[CLIENT_POLL].revents & POLLIN)
         {
-
+            //printf("Got data from client.\n");
             num_bytes = readFromSocket(conn.client_sock, &client_buf[client_buf_size], sizeof(client_buf)-client_buf_size);
             if(num_bytes < 0) break; // client connection lost
             if(num_bytes > 0) {
@@ -101,6 +103,7 @@ void *socks_connection_thread(void *pipefd) {
 
         /* client has data to receive */
         if(pfds[CLIENT_POLL].revents & POLLOUT) {
+            //printf("Got data from client.\n");
             num_bytes = sendToSocket(conn.client_sock, target_buf, target_buf_size);
             if (num_bytes < 0) break;
             if (num_bytes > 0) {
@@ -111,6 +114,7 @@ void *socks_connection_thread(void *pipefd) {
 
             } 
         } else if(pfds[REMOTE_POLL].revents & POLLOUT) {
+            //printf("Got data from remote.\n");
             num_bytes = sendToSocket(conn.target_sock, client_buf, (size_t) num_bytes);
             if(num_bytes < 0) break;
             if(num_bytes > 0) {
