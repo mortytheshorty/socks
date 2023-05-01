@@ -12,6 +12,7 @@ int socks_listen(socks *proxy)
     }
 
     int conidx = 0;
+    pthread_t thread;
 
     if(listen(proxy->sock, proxy->config->maxconn) != 0) {
         socks_log(proxy, "failed to listen on %s", proxy->config->ip);
@@ -21,8 +22,7 @@ int socks_listen(socks *proxy)
     socks_log(proxy, "listening on '%s:%d'", proxy->config->ip, proxy->config->port);
 
     for(;;) {
-        pthread_t thread;
-        socks_connection conn = { 0 };
+        socks_connection conn;
         int ret = socks_accept(proxy, &conn);
         if(ret < 0) {
             // SOCKS_ACCEPT ERROR
